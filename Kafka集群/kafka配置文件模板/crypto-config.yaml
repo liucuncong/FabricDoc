@@ -1,0 +1,22 @@
+OrdererOrgs:
+  - Name: Orderer
+    Domain: test.com
+    Specs:
+      - Hostname: orderer0	# 第1个排序节点: orderer0.test.com
+      - Hostname: orderer1	# 第2个排序节点: orderer1.test.com
+      - Hostname: orderer2  # 第3个排序节点: orderer2.test.com
+
+PeerOrgs:
+  - Name: OrgGo
+    Domain: orggo.test.com
+    Template:
+      Count: 2  # 当前go组织两个peer节点
+    Users:
+      Count: 1
+
+  - Name: OrgCpp
+    Domain: orgcpp.test.com
+    Template:
+      Count: 2  # 当前cpp组织两个peer节点
+    Users:
+      Count: 1

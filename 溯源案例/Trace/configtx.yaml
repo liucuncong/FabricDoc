@@ -1,0 +1,111 @@
+
+---
+################################################################################
+#
+#   Section: Organizations
+#
+#   - This section defines the different organizational identities which will
+#   be referenced later in the configuration.
+#
+################################################################################
+Organizations:
+    - &OrdererOrg
+        Name: OrdererOrg
+        ID: OrdererMSP
+        MSPDir: crypto-config/ordererOrganizations/trace.com/msp
+
+    - &dairy_org
+        Name: OrgDairyMSP
+        ID: OrgDairyMSP
+        MSPDir: crypto-config/peerOrganizations/dairy.trace.com/msp
+        AnchorPeers:
+            - Host: peer0.dairy.trace.com
+              Port: 7051
+
+    - &process_org
+        Name: OrgProcessMSP
+        ID: OrgProcessMSP
+        MSPDir: crypto-config/peerOrganizations/process.trace.com/msp
+        AnchorPeers:
+            - Host: peer0.process.trace.com
+              Port: 7051
+    - &sell_org
+        Name: OrgSellMSP
+        ID: OrgSellMSP
+        MSPDir: crypto-config/peerOrganizations/sell.trace.com/msp
+        AnchorPeers:
+            - Host: peer0.sell.trace.com
+              Port: 7051
+################################################################################
+#
+#   SECTION: Capabilities
+#
+################################################################################
+Capabilities:
+    Global: &ChannelCapabilities
+        V1_1: true
+    Orderer: &OrdererCapabilities
+        V1_1: true
+    Application: &ApplicationCapabilities
+        V1_2: true
+
+################################################################################
+#
+#   SECTION: Application
+#
+################################################################################
+Application: &ApplicationDefaults
+    Organizations:
+
+################################################################################
+#
+#   SECTION: Orderer
+#
+################################################################################
+Orderer: &OrdererDefaults
+    # Available types are "solo" and "kafka"
+    OrdererType: solo
+    Addresses:
+        - orderer.trace.com:7050
+
+    BatchTimeout: 2s
+    BatchSize:
+        MaxMessageCount: 10
+        AbsoluteMaxBytes: 99 MB
+        PreferredMaxBytes: 512 KB
+    Kafka:
+        Brokers:
+            - 127.0.0.1:9092
+    Organizations:
+
+################################################################################
+#
+#   Profile
+#
+################################################################################
+Profiles:
+    OrgsOrdererGenesis:
+        Capabilities:
+            <<: *ChannelCapabilities
+        Orderer:
+            <<: *OrdererDefaults
+            Organizations:
+                - *OrdererOrg
+            Capabilities:
+                <<: *OrdererCapabilities
+        Consortiums:
+            SampleConsortium:
+                Organizations:
+                    - *dairy_org
+                    - *process_org
+                    - *sell_org
+    OrgsChannel:
+        Consortium: SampleConsortium
+        Application:
+            <<: *ApplicationDefaults
+            Organizations:
+                - *dairy_org
+                - *process_org
+                - *sell_org
+            Capabilities:
+                <<: *ApplicationCapabilities

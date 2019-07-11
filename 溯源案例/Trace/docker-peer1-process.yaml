@@ -1,0 +1,38 @@
+version: '2'
+
+services:
+
+    peer1.process.trace.com:
+      container_name: peer1.process.trace.com
+      image: hyperledger/fabric-peer:latest
+      environment:
+        - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+        - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=trace_default
+        - CORE_LOGGING_LEVEL=INFO
+        #- CORE_LOGGING_LEVEL=DEBUG
+        - CORE_PEER_GOSSIP_USELEADERELECTION=true
+        - CORE_PEER_GOSSIP_ORGLEADER=false
+        - CORE_PEER_PROFILE_ENABLED=true
+        - CORE_PEER_LOCALMSPID=OrgProcessMSP
+        - CORE_PEER_ID=peer1.process.trace.com
+        - CORE_PEER_ADDRESS=peer1.process.trace.com:7051
+        - CORE_PEER_GOSSIP_BOOTSTRAP=peer1.process.trace.com:7051
+        - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer1.process.trace.com:7051
+        # TLS
+        - CORE_PEER_TLS_ENABLED=true
+        - CORE_PEER_TLS_CERT_FILE=/etc/hyperledger/fabric/tls/server.crt
+        - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/fabric/tls/server.key
+        - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/tls/ca.crt
+      volumes:
+        - /var/run/:/host/var/run/
+        - ./crypto-config/peerOrganizations/process.trace.com/peers/peer1.process.trace.com/msp:/etc/hyperledger/fabric/msp
+        - ./crypto-config/peerOrganizations/process.trace.com/peers/peer1.process.trace.com/tls:/etc/hyperledger/fabric/tls
+      working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
+      command: peer node start
+      networks:
+        default:
+          aliases:
+            - trace
+      ports:
+        - 8151:7051
+        - 8153:7053

@@ -1,0 +1,81 @@
+version: '2'
+
+services:
+
+    peer0.orgcpp.test.com:
+      container_name: peer0.orgcpp.test.com
+      image: hyperledger/fabric-peer:latest
+      environment:
+        - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+        - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=testwork_default
+        - CORE_LOGGING_LEVEL=INFO
+        #- CORE_LOGGING_LEVEL=DEBUG
+        - CORE_PEER_GOSSIP_USELEADERELECTION=true
+        - CORE_PEER_GOSSIP_ORGLEADER=false
+        - CORE_PEER_PROFILE_ENABLED=true
+        - CORE_PEER_LOCALMSPID=OrgCppMSP
+        - CORE_PEER_ID=peer0.orgcpp.test.com
+        - CORE_PEER_ADDRESS=peer0.orgcpp.test.com:7051
+        - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.orgcpp.test.com:7051
+        - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.orgcpp.test.com:7051
+        # TLS
+        - CORE_PEER_TLS_ENABLED=true
+        - CORE_PEER_TLS_CERT_FILE=/etc/hyperledger/fabric/tls/server.crt
+        - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/fabric/tls/server.key
+        - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/tls/ca.crt
+      volumes:
+        - /var/run/:/host/var/run/
+        - ./crypto-config/peerOrganizations/orgcpp.test.com/peers/peer0.orgcpp.test.com/msp:/etc/hyperledger/fabric/msp
+        - ./crypto-config/peerOrganizations/orgcpp.test.com/peers/peer0.orgcpp.test.com/tls:/etc/hyperledger/fabric/tls
+      working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
+      command: peer node start
+      networks:
+        default:
+          aliases:
+            - testwork
+      ports:
+        - 7051:7051
+        - 7053:7053
+      extra_hosts:  # 声明域名和IP的对应关系
+        - "orderer.test.com:192.168.247.129"
+        - "peer0.orgGo.test.com:192.168.247.141"
+        
+    cli:
+      container_name: cliCpp
+      image: hyperledger/fabric-tools:latest
+      tty: true
+      stdin_open: true
+      environment:
+        - GOPATH=/opt/gopath
+        - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+        #- CORE_LOGGING_LEVEL=DEBUG
+        - CORE_LOGGING_LEVEL=INFO
+        - CORE_PEER_ID=cliCpp
+        - CORE_PEER_ADDRESS=peer0.orgcpp.test.com:7051
+        - CORE_PEER_LOCALMSPID=OrgCppMSP
+        - CORE_PEER_TLS_ENABLED=true
+        - CORE_PEER_TLS_CERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/orgcpp.test.com/peers/peer0.orgcpp.test.com/tls/server.crt
+        - CORE_PEER_TLS_KEY_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/orgcpp.test.com/peers/peer0.orgcpp.test.com/tls/server.key
+        - CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/orgcpp.test.com/peers/peer0.orgcpp.test.com/tls/ca.crt
+        - CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/orgcpp.test.com/users/Admin@orgcpp.test.com/msp
+      working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
+      command: /bin/bash
+      volumes:
+          - /var/run/:/host/var/run/
+          - ./chaincode/:/opt/gopath/src/github.com/chaincode
+          - ./crypto-config:/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/
+          - ./channel-artifacts:/opt/gopath/src/github.com/hyperledger/fabric/peer/channel-artifacts
+      depends_on:   # 启动顺序
+        - peer0.orgcpp.test.com
+      
+      networks:
+          default:
+            aliases:
+              - testwork
+      extra_hosts:
+        - "orderer.test.com:192.168.247.129"
+        - "peer0.OrgGo.test.com:192.168.247.141"
+        - "peer0.orgcpp.test.com:192.168.247.131"
+        
+
+      

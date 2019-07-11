@@ -1,0 +1,110 @@
+
+---
+################################################################################
+#
+#   Section: Organizations
+#
+#   - This section defines the different organizational identities which will
+#   be referenced later in the configuration.
+#
+################################################################################
+Organizations:
+    - &OrdererOrg
+        Name: OrdererOrg
+        ID: OrdererMSP
+        MSPDir: crypto-config/ordererOrganizations/test.com/msp
+
+    - &go_org
+        Name: OrgGoMSP
+        ID: OrgGoMSP
+        MSPDir: crypto-config/peerOrganizations/orggo.test.com/msp
+        AnchorPeers:
+            - Host: peer0.orggo.test.com
+              Port: 7051
+
+    - &cpp_org
+        Name: OrgCppMSP
+        ID: OrgCppMSP
+        MSPDir: crypto-config/peerOrganizations/orgcpp.test.com/msp
+        AnchorPeers:
+            - Host: peer0.orgcpp.test.com
+              Port: 7051
+
+################################################################################
+#
+#   SECTION: Capabilities
+#
+################################################################################
+Capabilities:
+    Global: &ChannelCapabilities
+        V1_1: true
+    Orderer: &OrdererCapabilities
+        V1_1: true
+    Application: &ApplicationCapabilities
+        V1_2: true
+
+################################################################################
+#
+#   SECTION: Application
+#
+################################################################################
+Application: &ApplicationDefaults
+    Organizations:
+
+################################################################################
+#
+#   SECTION: Orderer
+#
+################################################################################
+Orderer: &OrdererDefaults
+    # Available types are "solo" and "kafka"
+    OrdererType: kafka
+    Addresses:
+        # 排序节点服务器地址
+        - orderer0.test.com:7050
+        - orderer1.test.com:7050
+        - orderer2.test.com:7050
+
+    BatchTimeout: 2s
+    BatchSize:
+        MaxMessageCount: 10
+        AbsoluteMaxBytes: 99 MB
+        PreferredMaxBytes: 512 KB
+    Kafka:
+        Brokers: 
+            # kafka服务器地址
+            - 192.168.247.201:9092
+            - 192.168.247.202:9092
+            - 192.168.247.203:9092
+            - 192.168.247.204:9092
+    Organizations:
+
+################################################################################
+#
+#   Profile
+#
+################################################################################
+Profiles:
+    OrgsOrdererGenesis:
+        Capabilities:
+            <<: *ChannelCapabilities
+        Orderer:
+            <<: *OrdererDefaults
+            Organizations:
+                - *OrdererOrg
+            Capabilities:
+                <<: *OrdererCapabilities
+        Consortiums:
+            SampleConsortium:
+                Organizations:
+                    - *go_org
+                    - *cpp_org
+    OrgsChannel:
+        Consortium: SampleConsortium
+        Application:
+            <<: *ApplicationDefaults
+            Organizations:
+                - *go_org
+                - *cpp_org
+            Capabilities:
+                <<: *ApplicationCapabilities
